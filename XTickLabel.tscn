@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dq8sfimed56eq"]
+
+[ext_resource type="Script" uid="uid://bi4fmlxrnu3o3" path="res://x_tick_label.gd" id="1_hmce4"]
+
+[node name="XTickLabel" type="Label"]
+script = ExtResource("1_hmce4")
