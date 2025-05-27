@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://wg4yevyrmtwd"]
+
+[ext_resource type="Texture2D" uid="uid://cl6i3vkegqkh1" path="res://icon.svg" id="1_fsq4c"]
+[ext_resource type="Script" uid="uid://c6vga3mfudcso" path="res://cursor.gd" id="2_5l68f"]
+
+[node name="Cursor" type="Sprite2D"]
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("1_fsq4c")
+script = ExtResource("2_5l68f")

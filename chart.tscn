@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://l3rv53ipeqjr"]
 
 [ext_resource type="Script" uid="uid://fhv7f6hovn8i" path="res://chart.gd" id="1_0bwlf"]
-[ext_resource type="Texture2D" uid="uid://cl6i3vkegqkh1" path="res://icon.svg" id="2_g4n1s"]
+[ext_resource type="PackedScene" uid="uid://wg4yevyrmtwd" path="res://cursor.tscn" id="2_g4n1s"]
 
 [node name="Chart" type="Control"]
 layout_mode = 3
@@ -46,8 +46,7 @@ anchor_top = 1.0
 anchor_bottom = 1.0
 grow_vertical = 0
 
-[node name="Cursor" type="Sprite2D" parent="."]
-scale = Vector2(0.2, 0.2)
-texture = ExtResource("2_g4n1s")
+[node name="Cursor" parent="." instance=ExtResource("2_g4n1s")]
 
 [connection signal="item_rect_changed" from="Line" to="." method="_on_line_item_rect_changed"]
+[connection signal="status_updated" from="Cursor" to="." method="_on_cursor_status_updated"]

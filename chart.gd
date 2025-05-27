@@ -1,11 +1,13 @@
 extends Control
 
-@export_range(0, 1, 0.01) var noise_amplitude: float = 0.05
+@export_range(0, 1, 0.01) var noise_amplitude: float = 0.2
 @export_range(0, 1, 0.01) var yoy_growth: float = 0.00
 @export_range(10, 100) var days_in_window: int = 30
-@export_range(1, 10) var horizontal_speed: float = 5 # How many days to scroll per second
+@export_range(1, 20) var horizontal_speed: float = 5 # How many days to scroll per second
 var dod_growth: float = pow(1 + yoy_growth, 1. / 365) - 1
 
+var value_at_cursor: float
+var is_cursor_activated: bool = false
 var last_index_in_window: int = -1 # Store latest in window to not loop over all points at every frame
 var line_rect: Rect2
 var rng = RandomNumberGenerator.new()
@@ -84,49 +86,13 @@ func draw_all_x_ticks() -> void:
 		label.text = "%d %s" % [d.day, d.month_abbr]
 		$Line/XTicks.add_child(label)
 		label.position = Vector2(x - label.size.x / 2, -label.size.y)
-		
-#func update_window():
-	## Update Graph
-	##var min_max = get_data_min_max(current_start_index, current_start_index + days_in_window)
-	#var min_max = get_data_min_max(0, len(data))
-	#var y_from: float = min_max[0]
-	#var y_range: float = min_max[1] - min_max[0]
-	#for i in range(len(data)):
-		#var x = horizontal_unit * (i - current_start_index)
-		#var y = line_rect.size.y * (-1. / y_range * data[i] + 1 + y_from / y_range)
-		#desired_positions[i] = Vector2(x, y)
-	## Update X Ticks
-	#for child in $XTicks.get_children():
-		#if child is XTickLabel:
-			#var x = horizontal_unit * (child.index - current_start_index)
-			#child.desired_position = Vector2(x - child.size.x, child.position.y)
 
 func _ready() -> void:
 	rng.seed = hash("Godot")
 	print("Day over day growth: %2.3f" % dod_growth)
 	data = generate_data(365)
-	#$Timer.wait_time = 1. / horizontal_speed
 	_on_line_item_rect_changed()
 	draw_all_x_ticks()
-	
-## Move Graph
-#for i in range(len(data)):
-	#var current_position: Vector2 = $Line/Line2D.get_point_position(i)
-	#var desired_position: Vector2 = desired_positions[i]
-	#if current_position.distance_squared_to(desired_position) < 1e-3:
-		#continue # Already at the desired position
-	#var direction: Vector2 = desired_position - current_position
-	#var scaled_direction: Vector2 = direction / abs(direction.x) * horizontal_unit
-	#$Line/Line2D.set_point_position(i, current_position + scaled_direction * delta * horizontal_speed)
-## Move X Ticks
-#for child in $XTicks.get_children():
-	#if child is XTickLabel:
-		#var current_position: Vector2 = child.position
-		#if current_position.distance_squared_to(child.desired_position) < 1e-3:
-			#continue # Already at the desired position
-		#var direction: Vector2 = child.desired_position - current_position
-		#var scaled_direction: Vector2 = direction / abs(direction.x) * horizontal_unit
-		#child.position = current_position + scaled_direction * delta * horizontal_speed
 	
 func _process(delta: float) -> void:
 	if $Line/Line2D.get_point_count() == 0:
@@ -137,27 +103,23 @@ func _process(delta: float) -> void:
 	$Line/XTicks.position.x -= horizontal_unit * horizontal_speed * delta
 	# Move Cursor
 	var index: int = last_index_in_window # Will never be -1 unless line_rect.size.x is 0
-	while index < $Line/Line2D.get_point_count():
+	while index + 1 < $Line/Line2D.get_point_count():
 		index += 1
-		var position: Vector2 = $Line/Line2D.get_point_position(index)
-		if position.x > line_rect.size.x - $Line/Line2D.position.x:
+		var p: Vector2 = $Line/Line2D.get_point_position(index)
+		if p.x > line_rect.size.x - $Line/Line2D.position.x:
 			break
 		last_index_in_window = index
+	if last_index_in_window + 1 >= $Line/Line2D.get_point_count():
+		return # Reached the end
+	var x = line_rect.size.x - $Line/Line2D.position.x # End of the window
 	var position_a: Vector2 = $Line/Line2D.get_point_position(last_index_in_window)
 	var position_b: Vector2 = $Line/Line2D.get_point_position(last_index_in_window + 1)
-	var y_func = get_y_func(position_a, position_b)
-	var x = line_rect.size.x - $Line/Line2D.position.x # End of the window
-	var y = y_func.call(x)
+	var y = get_y_func(position_a, position_b).call(x)
 	$Cursor.position = $Line/Line2D.position + Vector2(x, y)
-	#var index_a: int = current_start_index + days_in_window # Last index in window
-	#var index_b: int = index_a + 1
-	#var position_a: Vector2 = $Line/Line2D.get_point_position(index_a)
-	#var position_b: Vector2 = $Line/Line2D.get_point_position(index_b)
-	#var a: float = (position_b.y - position_a.y) / (position_b.x - position_a.x)
-	#var b: float = position_a.y - a * position_a.x
-	#var x = line_rect.size.x
-	#var y = a * x + b
-	#$Cursor.position = line_rect.position + Vector2(x, y)
+	# Update value at cursor
+	var value_a = Vector2(position_a.x, data[last_index_in_window])
+	var value_b = Vector2(position_b.x, data[last_index_in_window + 1])
+	value_at_cursor = get_y_func(value_a, value_b).call(x)
 
 func _on_line_item_rect_changed() -> void:
 	line_rect = $Line.get_rect()
@@ -165,11 +127,6 @@ func _on_line_item_rect_changed() -> void:
 	if len(data) == 0:
 		return # Data not available yet
 	draw_all_data()
-	#$Timer.start()
-
-#func _on_timer_timeout() -> void:
-	#current_start_index += 1
-	#update_window()
 
 func get_date_for_index(index: int, start_year: int = 2024) -> Dictionary:
 	var day_count := index
@@ -202,3 +159,7 @@ func get_date_for_index(index: int, start_year: int = 2024) -> Dictionary:
 		"month_abbr": MONTHS[month]["abbr"],
 		"day": day_count + 1 # 1-based
 	}
+
+
+func _on_cursor_status_updated(is_activated: bool) -> void:
+	is_cursor_activated = is_activated
