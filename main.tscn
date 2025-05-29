@@ -24,6 +24,10 @@ theme_override_constants/separation = 24
 [node name="Chart" parent="HBoxContainer" instance=ExtResource("1_ig7tw")]
 layout_mode = 2
 size_flags_horizontal = 3
+noise_amplitude = 0.2
+yoy_growth = 0.0
+days_in_window = 30
+horizontal_speed = 5.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
 layout_mode = 2
@@ -49,3 +53,31 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "001.00"
 horizontal_alignment = 2
+
+[node name="Title" type="MarginContainer" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+
+[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/Title"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Hello World"
+horizontal_alignment = 2
+autowrap_mode = 2
+
+[node name="Text" type="MarginContainer" parent="HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+
+[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/Text"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Hello World"
+horizontal_alignment = 2
+autowrap_mode = 2
+
+[connection signal="next_event" from="HBoxContainer/Chart" to="." method="_on_chart_next_event"]

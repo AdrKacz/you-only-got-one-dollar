@@ -14,6 +14,8 @@ var money: float:
 
 func _ready() -> void:
 	money = initial_money
+	$HBoxContainer/VBoxContainer/Title/Label.text = ""
+	$HBoxContainer/VBoxContainer/Text/Label.text = ""
 
 func _process(_delta: float) -> void:
 	var value_at_cursor = $HBoxContainer/Chart.value_at_cursor
@@ -29,3 +31,9 @@ func _process(_delta: float) -> void:
 		var ratio = value_at_cursor / entered_market_at
 		money = entered_market_with * ratio
 		
+
+
+func _on_chart_next_event(title: String, text: String) -> void:
+	print("Hello World")
+	$HBoxContainer/VBoxContainer/Title/Label.text = title
+	$HBoxContainer/VBoxContainer/Text/Label.text = text
